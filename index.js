@@ -39,6 +39,38 @@ function buildImageLoop (newsItemTitles, giphyURLS) {
   return imageStack.join(' \n');
 }
 
+function addPageStyle () {
+  return `
+    html, body {
+      margin: 0;
+      font-family: sans-serif;
+    }
+    .article {
+      width: 100%;
+      height: 100vh;
+      max-height: 80vw;
+      position: relative;
+      overflow: hidden;
+    }
+    .article h2 {
+      text-align: left;
+      padding: 0.5em;
+      background-color: #FFF;
+      position: absolute;
+      top: 50%;
+      right: 0;
+      font-size: 4vw;
+      margin-left: 10vw;
+      font-weight: 100;
+    }
+    .article img {
+      display: block;
+      text-align: center;
+      height: 100%;
+    }
+  `
+}
+
 function sendPageResponse(res, newsItemTitles, giphyURLS) {
   res.end(`
     <!DOCTYPE html><html lang="en">
@@ -46,29 +78,7 @@ function sendPageResponse(res, newsItemTitles, giphyURLS) {
         <meta charset="UTF-8" />
         <title>Offensive News Feed</title>
         <style>
-          html, body {
-            margin: 0;
-            font-family: sans-serif;
-          }
-          .article {
-            width: 100%;
-            height: 100vh;
-            position: relative;
-          }
-          .article h2 {
-            text-align: center;
-            padding: 20px;
-            background-color: #FFF;
-            position: absolute;
-            top: 60%;
-            right: 0;
-            font-size: 200%;
-          }
-          .article img {
-            display: block;
-            text-align: center;
-            height: 100vh;
-          }
+          ${addPageStyle()}
         </style>
       </head>
       <body>
@@ -80,10 +90,22 @@ function sendPageResponse(res, newsItemTitles, giphyURLS) {
   `);
 }
 
+function getCNNFeed () {
+  return new Promise((resolve, reject) => {
+    request.get('http://rss.cnn.com/rss/cnn_latest.rss', (err, cnnRes) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(cnnRes);
+    });
+  });
+}
+
 function setup() {
 
   app.get('/', (req, res) => {
-    request.get('http://rss.cnn.com/rss/cnn_latest.rss', (err, cnnRes) => {
+    getCNNFeed().then((cnnRes) => {
 
       parseXMLString(cnnRes.body, (err, result) => {
 
