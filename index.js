@@ -97,13 +97,13 @@ function setup() {
         let giphyURLS = [];
 
         newsItemTitles.forEach((title) => {
+
           let search = getWord(title);
           request.get(`http://api.giphy.com/v1/gifs/search?limit=4&q=${encodeURIComponent(search)}&api_key=${config.API_KEY}`,
             (err, giphyRes) => {
               asyncCounter++;
               let giphyData = JSON.parse(giphyRes.body).data;
               if ( giphyData.length ) {
-                console.log(giphyData);
                 giphyURLS.push(`https://media.giphy.com/media/${randItem(giphyData).id}/giphy.gif`);
               } else {
                 giphyURLS.push('https://api.giphy.com/img/giphy_search.gif');
@@ -112,6 +112,7 @@ function setup() {
                 sendPageResponse(res, newsItemTitles, giphyURLS);
               }
             });
+
         });
 
       });
