@@ -15,8 +15,9 @@ function getPageContent (newsItems) {
     <!DOCTYPE html><html lang="en">
       <head>
         <meta charset="UTF-8" />
-        <title>Offensive News Feed</title>
+        <title>Ridiculous News Feed</title>
         <link rel="stylesheet" href="/main.css" />
+        <meta name="viewport" content="width=device-width" />
       </head>
       <body>
         <div class="wrapper">
@@ -188,8 +189,6 @@ function setupRoutes() {
         return Promise.all( newsItems.map(getNewsGiphy) );
       })
       .then((promises) => {
-        //console.log(promises);
-        //res.end('duh');
         sendPageResponse(res, promises);
       });
   });
