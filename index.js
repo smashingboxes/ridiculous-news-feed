@@ -3,28 +3,33 @@ const request = require('request');
 const express = require('express');
 const parseXMLString = require('xml2js').parseString;
 const config = require('./config');
-
-let search = 'funny cat';
 const app = express();
+
+var inMemoryCache = getClearCache();
+
 app.use(express.static('public'));
 
-function filterStopWords (arr) {
-  return arr;
-}
 
-function getTitleWordArray (title) {
-  return title.split(' ').filter((word) => {
-    return word.length > 4;
-  });
-}
-
-function getSearchWord (title) {
-  let wordArray = getTitleWordArray(title);
-  return randItem(wordArray);
-}
-
-function randItem (arr) {
-  return arr[ Math.floor(Math.random()*arr.length) ];
+function getPageContent (newsItems) {
+  return `
+    <!DOCTYPE html><html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Offensive News Feed</title>
+        <link rel="stylesheet" href="/main.css" />
+      </head>
+      <body>
+        <div class="wrapper">
+          <div class="splash">
+            <h1>Welcome to the Ridiculous News Feed (RNF).</h1>
+            <h2>The RNF pulls a key word from CNN trending news stories using the CNN RSS Newsfeed and marries that to the Giphy API. The resulting mashup is simply ridiculous!</h2>
+          </div>
+          ${buildImageLoop(newsItems)}
+        </div>
+        <img class="powered-by-giphy" src="/powered-by-giphy.png" alt="" />
+      </body>
+    </html>
+  `;
 }
 
 function buildImageLoop (newsItems) {
@@ -50,38 +55,57 @@ function highlightSearchTerm (title, search) {
   return title;
 }
 
-function getPageContent (newsItems) {
-  return `
-    <!DOCTYPE html><html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Offensive News Feed</title>
-        <link rel="stylesheet" href="/main.css" />
-      </head>
-      <body>
-        <div class="wrapper">
-          ${buildImageLoop(newsItems)}
-        </div>
-      </body>
-    </html>
-  `;
+function getClearCache () {
+  console.log('Getting new cache!');
+  return {
+    date: Date.now(),
+    clear: 1000*60*5,
+    cnn: null,
+    giphy: {}
+  }
+}
+
+function checkCache (key, deepKey) {
+  if ( inMemoryCache.date && inMemoryCache.date + inMemoryCache.clear > Date.now() ) {
+    if (inMemoryCache[key] && !deepKey) {
+      return inMemoryCache[key];
+    } else if ( inMemoryCache[key] && deepKey && inMemoryCache[key][deepKey] ) {
+      return inMemoryCache[key][deepKey];
+    }
+  } else {
+    inMemoryCache = getClearCache();
+  }
+  return null;
+}
+
+function putCache (data, key, deepKey) {
+  if (!deepKey) {
+    inMemoryCache[key] = data;
+  } else {
+    inMemoryCache[key][deepKey] = data;
+  }
+  return data;
 }
 
 function getCNNFeed () {
   return new Promise((resolve, reject) => {
+    if (checkCache('cnn')) {
+      resolve( checkCache('cnn') );
+      return;
+    }
     request.get('http://rss.cnn.com/rss/cnn_latest.rss', (err, cnnRes) => {
       if (err) {
         reject(err);
         return;
       }
-      resolve(cnnRes);
+      resolve( putCache(cnnRes.body, 'cnn') );
     });
   });
 }
 
-function getNewsItems(cnnRes) {
+function getNewsItems(cnnResBody) {
   return new Promise((resolve, reject) => {
-    parseXMLString(cnnRes.body, (err, result) => {
+    parseXMLString(cnnResBody, (err, result) => {
       if (err) {
         reject(err);
         return;
@@ -104,6 +128,10 @@ function getNewsItems(cnnRes) {
 function getNewsGiphy (newsItem) {
   return new Promise((resolve, reject) => {
     let search = getSearchWord(newsItem.title);
+    if (checkCache('giphy', newsItem.title)) {
+      resolve( addGiphyToNewsItem( checkCache('giphy', newsItem.title), newsItem, search) );
+      return;
+    }
     request.get(`http://api.giphy.com/v1/gifs/search?limit=4&q=${encodeURIComponent(search)}&api_key=${config.API_KEY}`,
       (err, giphyRes) => {
         if (err) {
@@ -111,39 +139,50 @@ function getNewsGiphy (newsItem) {
           return;
         }
 
-        let giphyData = JSON.parse(giphyRes.body).data;
-
-        if ( giphyData.length ) {
-          newsItem.giphyurl = `https://media.giphy.com/media/${randItem(giphyData).id}/giphy.gif`;
-          newsItem.search = search;
-        } else {
-          newsItem.giphyurl = 'https://api.giphy.com/img/giphy_search.gif';
-          newsItem.search = null;
-        }
-        resolve(newsItem);
+        resolve( addGiphyToNewsItem( putCache(giphyRes.body, 'giphy', newsItem.title), newsItem, search) );
       });
   });
 }
 
-function sendPageResponse(res, newsItems) {
-  getPageContent(newsItems).split('\n').forEach((pageLine, i, arr) => {
-    process.nextTick(() => {
-      //console.log(pageLine);
-      res.write(pageLine);
-      if ( i === arr.length-1) {
-        res.end();
-      }
-    });
-  })
+function addGiphyToNewsItem (giphyResBody, newsItem, search) {
+  let giphyData = JSON.parse(giphyResBody).data;
+
+  if ( giphyData.length ) {
+    newsItem.giphyurl = `https://media.giphy.com/media/${randItem(giphyData).id}/giphy.gif`;
+    newsItem.search = search;
+  } else {
+    newsItem.giphyurl = 'https://api.giphy.com/img/giphy_search.gif';
+    newsItem.search = null;
+  }
+  return newsItem;
+}
+
+function filterStopWords (arr) {
+  return arr; //not used
+}
+
+function getTitleWordArray (title) {
+  return title.split(' ').filter((word) => {
+    return word.length > 4;
+  });
+}
+
+function getSearchWord (title) {
+  let wordArray = getTitleWordArray(title);
+  return randItem(wordArray);
+}
+
+function randItem (arr) {
+  return arr[ Math.floor(Math.random()*arr.length) ];
 }
 
 function setupRoutes() {
 
   app.get('/', (req, res) => {
-    console.log('GET / ', Date.now())
+    console.log('GET / ', Date.now());
     getCNNFeed()
-      .then((cnnRes) => {
-        return getNewsItems(cnnRes);
+      .then((cnnResBody) => {
+        return getNewsItems(cnnResBody);
       })
       .then((newsItems) => {
         return Promise.all( newsItems.map(getNewsGiphy) );
@@ -159,6 +198,18 @@ function setupRoutes() {
     console.log(`App listening on port ${config.PORT}!`);
   });
 
+}
+
+function sendPageResponse(res, newsItems) {
+  getPageContent(newsItems).split('\n').forEach((pageLine, i, arr) => {
+    process.nextTick(() => {
+      //console.log(pageLine);
+      res.write(pageLine);
+      if ( i === arr.length-1) {
+        res.end();
+      }
+    });
+  })
 }
 
 setupRoutes();
