@@ -52,6 +52,7 @@ html, body {
 }
 .splash h1, .splash h2, .splash small {
   width: 80%;
+  display: block;
   text-align: center;
   margin-left: auto;
   margin-right: auto;
