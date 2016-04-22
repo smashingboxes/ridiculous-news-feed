@@ -24,7 +24,7 @@ function getPageContent (newsItems) {
           <div class="splash">
             <h1>Welcome to the Ridiculous News Feed (RNF).</h1>
             <h2>The RNF pulls a key word from CNN trending news stories using the CNN RSS Newsfeed and marries that to the Giphy API. The resulting mashup is simply ridiculous!<sup>*</sup></h2>
-            <small>The following news feed contains juxtapositions of party material that typically results in offensive material. As a matter of course, this content should not be viewed by anyone. View, laugh, and enjoy solely at your own risk.</small>
+            <small>*The following news feed contains juxtapositions of material that typically results in an offensive combination. Plus, the image feed is uncensored. As a matter of course, this content should not be viewed by anyone. View, laugh, and enjoy solely at your own risk.</small>
           </div>
           ${buildImageLoop(newsItems)}
         </div>

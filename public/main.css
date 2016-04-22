@@ -50,6 +50,9 @@ html, body {
 .splash h2 {
   font-size: 3.2vw;
 }
+.splash small {
+  font-size: 0.5vw;
+}
 .splash h1, .splash h2, .splash small {
   width: 80%;
   display: block;
