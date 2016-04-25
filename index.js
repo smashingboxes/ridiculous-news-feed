@@ -4,13 +4,29 @@ const express = require('express');
 const parseXMLString = require('xml2js').parseString;
 const config = require('./config');
 const app = express();
+const RANDOM_GIF_STACK = [
+  'iVXnxXShe6iFW',
+  '11eS1vhyWtwkSc',
+  'mTBmhUxtB8zYY',
+  'D6KqqW9P2ziAo',
+  '4Y3JTG2695Q08',
+  'NajzuwkWCQFVe',
+  '3olneNn6cwHp6',
+  '2XflxzIq5kdkiQqaQso',
+  'xXQmihxsTUOSQ',
+  'Oppj4wEY7Vmes',
+  'LY2UeuEPUIpMY'
+];
 
-var inMemoryCache = getClearCache();
+let REGEX_URL = new RegExp("((%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)([).!';/?:,][[:blank:]])?$");
+let REGEX_TEXT = new RegExp('^[a-zA-Z0-9.,?:\'\ -]+$');
+
+let inMemoryCache = getClearCache();
 
 app.use(express.static('public'));
 
 
-function getPageContent (newsItems) {
+function getPageContent (newsItems, hideSplash) {
   return `
     <!DOCTYPE html><html lang="en">
       <head>
@@ -21,7 +37,7 @@ function getPageContent (newsItems) {
       </head>
       <body>
         <div class="wrapper">
-          <div class="splash">
+          <div class="splash" style="${hideSplash}">
             <h1>Welcome to the Ridiculous News Feed (RNF).</h1>
             <h2>The RNF pulls a key word from CNN trending news stories using the CNN RSS Newsfeed and marries that to the Giphy API. The resulting mashup is simply ridiculous!<sup>*</sup></h2>
             <small>*The following news feed contains juxtapositions of material that typically results in an offensive combination. Plus, the image feed is uncensored. As a matter of course, this content should not be viewed by anyone. View, laugh, and enjoy solely at your own risk.</small>
@@ -34,17 +50,20 @@ function getPageContent (newsItems) {
   `;
 }
 
+
 function buildImageLoop (newsItems) {
   let imageStack = [];
   newsItems.forEach((newsItem, i) => {
     imageStack.push(`
       <div class="article">
         <h2>
-          <a href="${newsItem.url}" target="_blank">
+          <a href="http://www.cnn.com/${newsItem.url}" target="_blank" data-meta="${newsItem.search}">
             ${highlightSearchTerm(newsItem.title, newsItem.search)}
           </a>
         </h2>
-        <img src="${newsItem.giphyurl}" alt="" />
+        <a href="/${encodeURIComponent(newsItem.search)}/${encodeURIComponent(newsItem.giphyid)}/${encodeURIComponent(newsItem.url)}/${encodeURIComponent(newsItem.title)}">
+          <img src="https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif" alt="" />
+        </a>
       </div>
     `);
   });
@@ -58,12 +77,12 @@ function highlightSearchTerm (title, search) {
 }
 
 function getClearCache () {
-  console.log('Getting new cache!');
   return {
     date: Date.now(),
     clear: 1000*60*5,
     cnn: null,
-    giphy: {}
+    giphy: {},
+    search: {}
   }
 }
 
@@ -117,11 +136,12 @@ function getNewsItems(cnnResBody) {
       let newsItems = cnnXML.rss.channel[0].item.map((newsItem, i) => {
         return {
           title: newsItem.title[0],
-          url: newsItem.guid[0]['_'],
-          giphyurl: null,
+          url: (newsItem.guid[0] || newsItem.link[0]).replace('http://www.cnn.com/',''),
+          giphyid: null,
           search: null
         }
       });
+
       resolve(newsItems);
     });
   });
@@ -149,11 +169,12 @@ function getNewsGiphy (newsItem) {
 function addGiphyToNewsItem (giphyResBody, newsItem, search) {
   let giphyData = JSON.parse(giphyResBody).data;
 
+  console.log(newsItem,search);
   if ( giphyData.length ) {
-    newsItem.giphyurl = `https://media.giphy.com/media/${randItem(giphyData).id}/giphy.gif`;
-    newsItem.search = search;
+    newsItem.giphyid = randItem(giphyData).id;
+    newsItem.search = (search || '').replace(/[^a-zA-Z0-9]*/gi,'');
   } else {
-    newsItem.giphyurl = 'https://api.giphy.com/img/giphy_search.gif';
+    newsItem.giphyid = RANDOM_GIF_STACK[ Math.floor(Math.random()*RANDOM_GIF_STACK.length) ];
     newsItem.search = null;
   }
   return newsItem;
@@ -170,8 +191,7 @@ function getTitleWordArray (title) {
 }
 
 function getSearchWord (title) {
-  let wordArray = getTitleWordArray(title);
-  return randItem(wordArray);
+  return checkCache('search', title) || putCache( randItem( (getTitleWordArray(title)) ), 'search', title );
 }
 
 function randItem (arr) {
@@ -194,17 +214,30 @@ function setupRoutes() {
       });
   });
 
+  app.get('/:search/:giphyid/:cnnurl/:cnntitle', (req, res) => {
+    let item = {
+      title: REGEX_TEXT.test(req.params.cnntitle) ? req.params.cnntitle : '',
+      url: REGEX_URL.test(req.params.cnnurl) ? req.params.cnnurl : '',
+      giphyid: REGEX_TEXT.test(req.params.giphyid) ? req.params.giphyid : '',
+      search: REGEX_TEXT.test(req.params.search) ? req.params.search : ''
+    };
+    sendPageResponse(res, [item], 'display: none;');
+    console.log(item);
+  });
+
   app.listen(config.PORT, () => {
     console.log(`App listening on port ${config.PORT}!`);
   });
 
 }
 
-function sendPageResponse(res, newsItems) {
-  getPageContent(newsItems).split('\n').forEach((pageLine, i, arr) => {
+function sendPageResponse(res, newsItems, hideSplash) {
+  getPageContent(newsItems, hideSplash).split('\n').forEach((pageLine, i, arr) => {
     process.nextTick(() => {
       //console.log(pageLine);
-      res.write(pageLine);
+      if (!!pageLine) {
+        res.write(pageLine+'\n');
+      }
       if ( i === arr.length-1) {
         res.end();
       }
