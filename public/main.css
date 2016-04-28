@@ -2,6 +2,12 @@ html, body {
   margin: 0;
   font-family: 'Helvetica Neue', Helvetica, sans-serif;
 }
+.logo {
+  width: 200px;
+  max-width: 50%;
+  margin: 0 auto;
+  display: block;
+}
 .article, .splash {
   width: 100%;
   height: 100vh;
@@ -31,6 +37,11 @@ html, body {
   color: #000;
   text-decoration: none;
 }
+.article > a {
+  position: relative;
+  height: 100%;
+  display: block;
+}
 .article img {
   display: block;
   height: 90%;
@@ -40,30 +51,22 @@ html, body {
 .splash {
   background-color: black;
   color: white;
-  max-height: 100vh;
+  min-height: 100vh;
   text-align: center;
+  max-height: none;
+  padding: 10vh 0;
+  box-sizing: border-box;
 }
 .splash h1 {
-  margin-top: 30vh;
+  margin-top: 1em;
   font-size: 4vw;
 }
 .splash h2 {
+  margin-top: 0;
   font-size: 3.2vw;
 }
 .splash small {
   font-size: 14px;
-}
-@media screen and (max-width: 767.99px) {
-  .splash h1 {
-    margin-top: 10vh;
-    font-size: 50px;
-  }
-  .splash h2 {
-    font-size: 30px;
-  }
-  .splash small {
-    font-size: 14px;
-  }
 }
 .splash h1, .splash h2, .splash small {
   width: 80%;
@@ -78,4 +81,54 @@ html, body {
   bottom: 1vh;
   left: 1vw;
   max-width: 10vw;
+}
+.shareWrap {
+  position: absolute;
+  z-index: 1000;
+  top: 50%;
+  left: 0;
+}
+.shareWrap > span {
+  display: block;
+}
+.takeMeBack {
+  float: right;
+  padding: 0.8em;
+}
+@media screen and (max-width: 767.99px) {
+  .splash {
+    height: auto;
+  }
+  .splash h1 {
+    margin-top: 10vh;
+    font-size: 30px;
+  }
+  .splash h2 {
+    font-size: 20px;
+  }
+  .splash small {
+    font-size: 14px;
+  }
+  .article {
+    height: 200vw;
+    max-height: 100vw;
+    margin-top: 10vw;
+    margin-bottom: 10vw;
+    border-bottom: 1px solid #000;
+  }
+  .article h2 {
+    font-size: 25px;
+  }
+  .article img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    position: absolute;
+    bottom: 5%;
+    top: auto;
+  }
+  .shareWrap {
+    display: none;
+  }
 }
