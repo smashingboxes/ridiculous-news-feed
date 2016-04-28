@@ -26,12 +26,12 @@ let inMemoryCache = getClearCache();
 app.use(express.static('public'));
 
 
-function getPageContent (newsItems, hideSplash, footerAddon) {
+function getPageContent (newsItems, hideSplash, footerAddon, titleAddon) {
   return `
     <!DOCTYPE html><html lang="en">
       <head>
         <meta charset="UTF-8" />
-        <title>Ridiculous News Feed</title>
+        <title>Ridiculous News Feed${titleAddon||''}</title>
         <link rel="stylesheet" href="/main.css" />
         <meta name="viewport" content="width=device-width" />
         <script type="text/javascript">var switchTo5x=true;</script>
@@ -252,7 +252,7 @@ function setupRoutes() {
       giphyid: REGEX_TEXT.test( atob(params.giphyid) ) ? atob(params.giphyid) : '',
       search: REGEX_TEXT.test( atob(params.search) ) ? atob(params.search) : ''
     };
-    sendPageResponse(res, [item], 'display: none;', buildTakeMeBackButton());
+    sendPageResponse(res, [item], 'display: none;', buildTakeMeBackButton(), ': '+item.title);
     console.log(item);
   });
 
@@ -262,8 +262,8 @@ function setupRoutes() {
 
 }
 
-function sendPageResponse(res, newsItems, hideSplash, footerAddon) {
-  getPageContent(newsItems, hideSplash, footerAddon).split('\n').forEach((pageLine, i, arr) => {
+function sendPageResponse(res, newsItems, hideSplash, footerAddon, titleAddon) {
+  getPageContent(newsItems, hideSplash, footerAddon, titleAddon).split('\n').forEach((pageLine, i, arr) => {
     process.nextTick(() => {
       //console.log(pageLine);
       if (!!pageLine) {
