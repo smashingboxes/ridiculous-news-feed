@@ -252,7 +252,7 @@ function setupRoutes() {
       giphyid: REGEX_TEXT.test( atob(params.giphyid) ) ? atob(params.giphyid) : '',
       search: REGEX_TEXT.test( atob(params.search) ) ? atob(params.search) : ''
     };
-    sendPageResponse(res, [item], 'display: none;', buildTakeMeBackButton(), ': '+item.title);
+    sendPageResponse(res, [item], 'display: none;', buildTakeMeBackButton(), ' | '+item.title);
     console.log(item);
   });
 
