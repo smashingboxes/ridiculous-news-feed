@@ -55,11 +55,12 @@ function getPageContent (newsItems, hideSplash, footerAddon, titleAddon) {
   `;
 }
 function buildShareWidget (newsItem) {
+  let shareURL = `http://ridiculous-newsfeed.smashingboxes.com//${btoa(newsItem.search)}/${btoa(newsItem.giphyid)}/${btoa(newsItem.url)}/${btoa(newsItem.title)}`;
   return `
   <span class="shareWrap">
-    <span class="st_sharethis_large" st_url="/${btoa(newsItem.search)}/${btoa(newsItem.giphyid)}/${btoa(newsItem.url)}/${btoa(newsItem.title)}" st_title="A Ridiculous News Item: ${newsItem.title}" st_image="https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif"></span>
-    <span class='st_facebook_large' displayText='Facebook' st_url="/${btoa(newsItem.search)}/${btoa(newsItem.giphyid)}/${btoa(newsItem.url)}/${btoa(newsItem.title)}" st_title="A Ridiculous News Item: ${newsItem.title}" st_image="https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif"></span>
-    <span class='st_twitter_large' displayText='Tweet' st_url="/${btoa(newsItem.search)}/${btoa(newsItem.giphyid)}/${btoa(newsItem.url)}/${btoa(newsItem.title)}" st_title="A Ridiculous News Item: ${newsItem.title}" st_image="https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif"></span>
+    <span class="st_sharethis_large" st_url="${shareURL}" st_title="A Ridiculous News Item: ${newsItem.title}" st_image="https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif"></span>
+    <span class='st_facebook_large' displayText='Facebook' st_url="${shareURL}" st_title="A Ridiculous News Item: ${newsItem.title}" st_image="https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif"></span>
+    <span class='st_twitter_large' displayText='Tweet' st_url="${shareURL}" st_title="A Ridiculous News Item: ${newsItem.title}" st_image="https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif"></span>
   </span>
   `;
 }
