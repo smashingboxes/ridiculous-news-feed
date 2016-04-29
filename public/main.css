@@ -17,12 +17,12 @@ html, body {
 }
 .article h2 {
   text-align: left;
-  padding: 0.8em;
+  padding: 3.5% 0.8em 0.8em 0.8em;
   background-color: #FFF;
   position: absolute;
   top: 0%;
   right: 0;
-  font-size: 3.5vw;
+  font-size: 2.5vw;
   margin: 0 0 0 15vw;
   font-weight: 100;
   line-height: 1;

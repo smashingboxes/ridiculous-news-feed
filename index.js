@@ -42,9 +42,10 @@ function getPageContent (newsItems, hideSplash, footerAddon, titleAddon) {
         <div class="wrapper">
           <div class="splash" style="${hideSplash||''}">
             <a href="http://smashingboxes.com" target="_blank" class="logo"><img src="/sb_logo_white.svg" alt="" /></a>
-            <h1>Welcome to the Ridiculous News Feed (RNF).</h1>
-            <h2>The RNF pulls a key word from CNN trending news stories using the CNN RSS Newsfeed and marries that to the Giphy API. The resulting mashup is simply ridiculous!<sup>*</sup></h2>
-            <small>*The following news feed contains juxtapositions of material that typically results in an offensive combination. Plus, the image feed is uncensored. As a matter of course, this content should not be viewed by anyone. View, laugh, and enjoy solely at your own risk.</small>
+            <small>presents</small>
+            <h1>The Ridiculous News Feed (RNF)</h1>
+            <h2>The RNF pulls a key word from CNN trending news headline using the CNN RSS Newsfeed and marries that to images from the Giphy API. The resulting mashup is simply ridiculous!<sup>*</sup></h2>
+            <small>*The following news feed contains juxtapositions of material that typically results in an offensive combination. Plus, the image feed is uncensored. As a matter of course, this content should not be viewed by anyone. View, laugh, share, and enjoy solely at your own risk.</small>
           </div>
           ${buildImageLoop(newsItems)}
           ${footerAddon||''}
