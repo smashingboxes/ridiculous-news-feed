@@ -152,6 +152,13 @@ function getCNNFeed () {
   });
 }
 
+function getNewsItemLink (newsItem) {
+  return ((newsItem.guid[0] || newsItem.link[0]).replace) ?
+    (newsItem.guid[0] || newsItem.link[0]).replace('http://www.cnn.com/','')
+    : (newsItem.guid[0]._ && newsItem.guid[0]._.replace) ?
+      newsItem.guid[0]._.replace('http://www.cnn.com/','')
+      : '';
+}
 function getNewsItems(cnnResBody) {
   return new Promise((resolve, reject) => {
     parseXMLString(cnnResBody, (err, result) => {
@@ -164,7 +171,7 @@ function getNewsItems(cnnResBody) {
       let newsItems = cnnXML.rss.channel[0].item.map((newsItem, i) => {
         return {
           title: newsItem.title[0],
-          url: ((newsItem.guid[0] || newsItem.link[0]).replace) ? (newsItem.guid[0] || newsItem.link[0]).replace('http://www.cnn.com/','') : 'http://www.cnn.com/',
+          url: getNewsItemLink(newsItem),
           giphyid: null,
           search: null
         }
