@@ -42,7 +42,7 @@ html, body {
   -o-transition: 300ms background-color;
   transition: 300ms background-color;
 }
-.article h2 a {
+.article h2 a:hover {
   background-color: lightyellow;
 }
 .article > a {
