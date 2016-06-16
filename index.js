@@ -164,7 +164,7 @@ function getNewsItems(cnnResBody) {
       let newsItems = cnnXML.rss.channel[0].item.map((newsItem, i) => {
         return {
           title: newsItem.title[0],
-          url: (newsItem.guid[0] || newsItem.link[0]).replace('http://www.cnn.com/',''),
+          url: ((newsItem.guid[0] || newsItem.link[0]).replace) ? (newsItem.guid[0] || newsItem.link[0]).replace('http://www.cnn.com/','') : 'http://www.cnn.com/',
           giphyid: null,
           search: null
         }
