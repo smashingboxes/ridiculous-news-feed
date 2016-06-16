@@ -36,6 +36,14 @@ html, body {
 .article a {
   color: #000;
   text-decoration: none;
+  -webkit-transition: 300ms background-color;
+  -moz-transition: 300ms background-color;
+  -ms-transition: 300ms background-color;
+  -o-transition: 300ms background-color;
+  transition: 300ms background-color;
+}
+.article h2 a {
+  background-color: lightyellow;
 }
 .article > a {
   position: relative;
