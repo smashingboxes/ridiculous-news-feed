@@ -41,7 +41,7 @@ function getPageContent (newsItems, hideSplash, footerAddon, titleAddon) {
       <body>
         <div class="wrapper">
           <div class="splash" style="${hideSplash||''}">
-            <a href="http://smashingboxes.com" target="_blank" class="logo"><img src="/sb_logo_white.svg" alt="" /></a>
+            <a href="http://smashingboxes.com/?utm_source=ridiculous-newsfeed-lp&utm_medium=lp&utm_campaign=sb-product" target="_blank" class="logo"><img src="/sb_logo_white.svg" alt="" /></a>
             <small>presents</small>
             <h1>The Ridiculous News Feed (RNF)</h1>
             <h2>The RNF pulls a key word from CNN trending news headline using the CNN RSS Newsfeed and marries that to images from the Giphy API. The resulting mashup is simply ridiculous!<sup>*</sup></h2>
