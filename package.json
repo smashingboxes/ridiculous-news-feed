@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "escape-html": "^1.0.3",
     "express": "^4.13.4",
     "request": "^2.69.0",
     "xml2js": "^0.4.16"

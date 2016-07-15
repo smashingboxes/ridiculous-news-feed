@@ -2,6 +2,7 @@
 const request = require('request');
 const express = require('express');
 const parseXMLString = require('xml2js').parseString;
+const escapehtml = require('escape-html');
 const config = require('./config');
 const app = express();
 const RANDOM_GIF_STACK = [
@@ -19,7 +20,8 @@ const RANDOM_GIF_STACK = [
 ];
 
 let REGEX_URL = new RegExp("((%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)([).!';/?:,][[:blank:]])?$");
-let REGEX_TEXT = new RegExp('^[a-zA-Z0-9.,?:\'\ -]+$');
+let REGEX_TEXT = new RegExp('^[a-zA-Z0-9.,?:\'\\\/\ \-]+$');
+let SHARE_URL_BASE = config.SHARE_URL_BASE || 'http://ridiculousnewsfeed.com';
 
 let inMemoryCache = getClearCache();
 
@@ -37,6 +39,15 @@ function getPageContent (newsItems, hideSplash, footerAddon, titleAddon) {
         <script type="text/javascript">var switchTo5x=true;</script>
         <script type="text/javascript" src="https://ws.sharethis.com/button/buttons.js"></script>
         <script type="text/javascript">stLight.options({publisher: "7b6849dd-9634-4f66-93be-b0595e0fad6b", doNotHash: false, doNotCopy: false, hashAddressBar: false});</script>
+      ` +
+      ((newsItems.length === 1) ?
+        `
+        <meta property="og:title" content="${escapehtml(newsItems[0].title)}" />
+        <meta property="og:url" content="${permalink(newsItems[0])}" />
+        <meta property="og:image" content="${giphylink(newsItems[0])}" />
+        `
+      : '') +
+      `
       </head>
       <body>
         <div class="wrapper">
@@ -64,12 +75,12 @@ function getPageContent (newsItems, hideSplash, footerAddon, titleAddon) {
   `;
 }
 function buildShareWidget (newsItem) {
-  let shareURL = `http://ridiculous-newsfeed.smashingboxes.com/${btoa(newsItem.search)}/${btoa(newsItem.giphyid)}/${btoa(newsItem.url)}/${btoa(newsItem.title)}`;
+  let shareURL = permalink(newsItem);
   return `
   <span class="shareWrap">
-    <span class="st_sharethis_large" st_url="${shareURL}" st_title="A Ridiculous News Item: ${newsItem.title}" st_image="https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif"></span>
-    <span class='st_facebook_large' displayText='Facebook' st_url="${shareURL}" st_title="A Ridiculous News Item: ${newsItem.title}" st_image="https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif"></span>
-    <span class='st_twitter_large' displayText='Tweet' st_url="${shareURL}" st_title="A Ridiculous News Item: ${newsItem.title}" st_image="https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif"></span>
+    <span class="st_sharethis_large" st_url="${shareURL}" st_title="A News Item, Made Ridiculous: ${newsItem.title}" st_image="${giphylink(newsItem)}"></span>
+    <span class='st_facebook_large' displayText='Facebook' st_url="${shareURL}" st_title="A News Item, Made Ridiculous: ${newsItem.title}" st_image="${giphylink(newsItem)}"></span>
+    <span class='st_twitter_large' displayText='Tweet' st_url="${shareURL}" st_title="A News Item, Made Ridiculous: ${newsItem.title}" st_image="${giphylink(newsItem)}"></span>
   </span>
   `;
 }
@@ -79,12 +90,12 @@ function buildImageLoop (newsItems) {
     imageStack.push(`
       <div class="article">
         <h2>
-          <a title="Interested in actual news? Click here to go to the real thing." href="http://www.cnn.com/${newsItem.url}" target="_blank" data-meta="${newsItem.search}">
+          <a title="Interested in actual news? Click here to go to the real thing." href="${cnnlink(newsItem)}" target="_blank" data-meta="${newsItem.search}">
             ${highlightSearchTerm(newsItem.title, newsItem.search)}
           </a>
         </h2>
-        <a href="/${btoa(newsItem.search)}/${btoa(newsItem.giphyid)}/${btoa(newsItem.url)}/${btoa(newsItem.title)}">
-          <img src="https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif" alt="" />
+        <a href="${permalink(newsItem)}">
+          <img src="${giphylink(newsItem)}" alt="" />
         </a>
         ${buildShareWidget(newsItem)}
       </div>
@@ -92,10 +103,18 @@ function buildImageLoop (newsItems) {
   });
   return imageStack.join(' \n');
 }
+function cnnlink(newsItem){
+  return `http://www.cnn.com/${newsItem.url}`;
+}
+function giphylink(newsItem){
+  return `https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif`;
+}
+function permalink(newsItem) {
+  return `${SHARE_URL_BASE}/${btoa(newsItem.search)}/${btoa(newsItem.giphyid)}/${btoa(newsItem.url)}/${btoa(newsItem.title)}`;
+}
 function buildTakeMeBackButton () {
   return `<h3 class="takeMeBack">Want to see more? Go to the <a href="/">Ridiculous News Feed</a>!</h3>`;
 }
-
 function btoa (str) {
   let bfr = (new Buffer(str || ''));
   return bfr.toString('base64');
@@ -104,14 +123,10 @@ function atob (str) {
   let bfr = (new Buffer(str || '', 'base64'));
   return bfr.toString('ascii');
 }
-
-
 function highlightSearchTerm (title, search) {
   if ( search ) title = title.replace(search, '<strong>'+search+'<\/strong>');
-  //console.log(title, ' -- ', search);
   return title;
 }
-
 function getClearCache () {
   return {
     date: Date.now(),
@@ -121,7 +136,6 @@ function getClearCache () {
     search: {}
   }
 }
-
 function checkCache (key, deepKey) {
   if ( inMemoryCache.date && inMemoryCache.date + inMemoryCache.clear > Date.now() ) {
     if (inMemoryCache[key] && !deepKey) {
@@ -134,7 +148,6 @@ function checkCache (key, deepKey) {
   }
   return null;
 }
-
 function putCache (data, key, deepKey) {
   if (!deepKey) {
     inMemoryCache[key] = data;
@@ -143,7 +156,6 @@ function putCache (data, key, deepKey) {
   }
   return data;
 }
-
 function getCNNFeed () {
   return new Promise((resolve, reject) => {
     if (checkCache('cnn')) {
@@ -159,7 +171,6 @@ function getCNNFeed () {
     });
   });
 }
-
 function getNewsItemLink (newsItem) {
   return ((newsItem.guid[0] || newsItem.link[0]).replace) ?
     (newsItem.guid[0] || newsItem.link[0]).replace('http://www.cnn.com/','')
@@ -189,7 +200,6 @@ function getNewsItems(cnnResBody) {
     });
   });
 }
-
 function getNewsGiphy (newsItem) {
   return new Promise((resolve, reject) => {
     let search = getSearchWord(newsItem.title);
@@ -208,7 +218,6 @@ function getNewsGiphy (newsItem) {
       });
   });
 }
-
 function addGiphyToNewsItem (giphyResBody, newsItem, search) {
   let giphyData = JSON.parse(giphyResBody).data;
 
@@ -222,21 +231,17 @@ function addGiphyToNewsItem (giphyResBody, newsItem, search) {
   }
   return newsItem;
 }
-
 function filterStopWords (arr) {
   return arr; //not used
 }
-
 function getTitleWordArray (title) {
   return title.split(' ').filter((word) => {
     return word.length > 4;
   });
 }
-
 function getSearchWord (title) {
   return checkCache('search', title) || putCache( randItem( (getTitleWordArray(title)) ), 'search', title );
 }
-
 function randItem (arr) {
   return arr[ Math.floor(Math.random()*arr.length) ];
 }
@@ -264,10 +269,10 @@ function setupRoutes() {
   app.get('/:search/:giphyid/:cnnurl/:cnntitle', (req, res) => {
     let params = req.params;
     let item = {
-      title: REGEX_TEXT.test( atob(params.cnntitle) ) ? atob(params.cnntitle) : '',
-      url: REGEX_URL.test( atob(params.cnnurl) ) ? atob(params.cnnurl) : '',
-      giphyid: REGEX_TEXT.test( atob(params.giphyid) ) ? atob(params.giphyid) : '',
-      search: REGEX_TEXT.test( atob(params.search) ) ? atob(params.search) : ''
+      title: sanitizeDeeplinks(REGEX_TEXT, params.cnntitle),
+      url: sanitizeDeeplinks(REGEX_URL, params.cnnurl),
+      giphyid: sanitizeDeeplinks(REGEX_TEXT, params.giphyid),
+      search: sanitizeDeeplinks(REGEX_TEXT, params.search)
     };
     sendPageResponse(res, [item], 'display: none;', buildTakeMeBackButton(), ' | '+item.title);
     console.log(item);
@@ -278,19 +283,24 @@ function setupRoutes() {
   });
 
 }
-
+function sanitizeDeeplinks(_REGEX, _val) {
+  let val = atob(_val);
+  return _REGEX.test(val) ? val : '';
+}
 function sendPageResponse(res, newsItems, hideSplash, footerAddon, titleAddon) {
-  getPageContent(newsItems, hideSplash, footerAddon, titleAddon).split('\n').forEach((pageLine, i, arr) => {
-    process.nextTick(() => {
-      //console.log(pageLine);
-      if (!!pageLine) {
-        res.write(pageLine+'\n');
-      }
-      if ( i === arr.length-1) {
-        res.end();
-      }
-    });
-  })
+  getPageContent(newsItems, hideSplash, footerAddon, titleAddon)
+    .split('\n')
+    .forEach((pageLine, i, arr) => {
+      process.nextTick(() => {
+        //console.log(pageLine);
+        if (!!pageLine) {
+          res.write(pageLine+'\n');
+        }
+        if ( i === arr.length-1) {
+          res.end();
+        }
+      });
+    })
 }
 
 setupRoutes();

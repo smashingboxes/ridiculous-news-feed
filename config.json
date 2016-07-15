@@ -1,4 +1,5 @@
 {
   "API_KEY": "dc6zaTOxFJmzC",
+  "SHARE_URL_BASE": "http://localhost:3333",
   "PORT": 3333
 }
