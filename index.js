@@ -20,7 +20,7 @@ const RANDOM_GIF_STACK = [
 ];
 
 let REGEX_URL = new RegExp("((%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)([).!';/?:,][[:blank:]])?$");
-let REGEX_TEXT = new RegExp('^[a-zA-Z0-9.,?:\'\\\/\ \-]+$');
+let REGEX_TEXT = new RegExp('^([^()<>{}]+)$');
 let SHARE_URL_BASE = config.SHARE_URL_BASE || 'http://ridiculousnewsfeed.com';
 
 let inMemoryCache = getClearCache();
@@ -44,7 +44,7 @@ function getPageContent (newsItems, hideSplash, footerAddon, titleAddon) {
         `
         <meta property="og:title" content="${escapehtml(newsItems[0].title)}" />
         <meta property="og:url" content="${permalink(newsItems[0])}" />
-        <meta property="og:image" content="${giphylink(newsItems[0])}" />
+        <meta property="og:image" content="${giphyStillLink(newsItems[0])}" />
         `
       : '') +
       `
@@ -108,6 +108,9 @@ function cnnlink(newsItem){
 }
 function giphylink(newsItem){
   return `https://media.giphy.com/media/${newsItem.giphyid}/giphy.gif`;
+}
+function giphyStillLink(newsItem){
+  return `https://media.giphy.com/media/${newsItem.giphyid}/giphy_s.gif`;
 }
 function permalink(newsItem) {
   return `${SHARE_URL_BASE}/${btoa(newsItem.search)}/${btoa(newsItem.giphyid)}/${btoa(newsItem.url)}/${btoa(newsItem.title)}`;
