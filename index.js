@@ -239,7 +239,7 @@ function filterStopWords (arr) {
 }
 function getTitleWordArray (title) {
   return title.split(' ').filter((word) => {
-    return word.length > 4;
+    return word.length > 4 && /^[a-zA-Z]+$/.test(word);
   });
 }
 function getSearchWord (title) {
