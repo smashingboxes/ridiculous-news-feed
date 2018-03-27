@@ -21,7 +21,7 @@ const RANDOM_GIF_STACK = [
 
 let REGEX_URL = new RegExp("((%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)([).!';/?:,][[:blank:]])?$");
 let REGEX_TEXT = new RegExp('^([^()<>{}]+)$');
-let SHARE_URL_BASE = config.SHARE_URL_BASE || 'http://ridiculousnewsfeed.com';
+let SHARE_URL_BASE = config.SHARE_URL_BASE || 'http://ridiculous-newsfeed.smashingboxes.com';
 
 let inMemoryCache = getClearCache();
 
